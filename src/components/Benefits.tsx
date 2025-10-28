@@ -93,9 +93,8 @@ export const Benefits = () => {
           <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full opacity-5 blur-3xl"></div>
           <div className="relative z-10">
             <h3 className="text-3xl md:text-4xl font-bold mb-8 text-center">Even More Perks</h3>
-            <div className="grid md:grid-cols-4 gap-6">
+            <div className="grid md:grid-cols-3 gap-6">
               {[
-                { icon: <Shield className="w-6 h-6" />, text: 'Health & Dental' },
                 { icon: <Clock className="w-6 h-6" />, text: 'Flexible Hours' },
                 { icon: <Award className="w-6 h-6" />, text: 'Learning Budget' },
                 { icon: <Star className="w-6 h-6" />, text: 'Career Coaching' }

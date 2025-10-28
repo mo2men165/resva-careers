@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { CheckCircle, ArrowRight, Clock, Users, Briefcase, Award, TrendingUp, Mic, Square, Play, Pause, Trash2 } from 'lucide-react';
 import { storage } from '../firebase/config';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -8,7 +8,6 @@ interface FormData {
   email: string;
   phone: string;
   location: string;
-  noticePeriod: string;
   experience: string;
   audioBlob: Blob | null;
 }
@@ -18,7 +17,6 @@ interface FormErrors {
   email?: string;
   phone?: string;
   location?: string;
-  noticePeriod?: string;
   experience?: string;
   audio?: string;
 }
@@ -29,7 +27,6 @@ export const ApplicationForm = () => {
     email: '',
     phone: '',
     location: '',
-    noticePeriod: '',
     experience: '',
     audioBlob: null
   });
@@ -46,11 +43,20 @@ export const ApplicationForm = () => {
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioURL, setAudioURL] = useState<string | null>(null);
   const [micError, setMicError] = useState<string | null>(null);
+  const [browserWarning, setBrowserWarning] = useState<string | null>(null);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Check browser compatibility on mount
+  useEffect(() => {
+    const compatibility = checkBrowserCompatibility();
+    if (compatibility.warning) {
+      setBrowserWarning(compatibility.warning);
+    }
+  }, []);
 
   const validate = () => {
     const newErrors: FormErrors = {};
@@ -73,10 +79,6 @@ export const ApplicationForm = () => {
       newErrors.location = 'Please enter your location';
     }
     
-    if (!formData.noticePeriod) {
-      newErrors.noticePeriod = 'Please select your notice period';
-    }
-    
     if (!formData.experience) {
       newErrors.experience = 'Please select your years of experience';
     }
@@ -88,36 +90,154 @@ export const ApplicationForm = () => {
     return newErrors;
   };
 
+  // Helper function to get supported MIME type
+  const getSupportedMimeType = () => {
+    const types = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/mp4',
+      'audio/ogg;codecs=opus',
+      'audio/wav'
+    ];
+    
+    for (const type of types) {
+      if (MediaRecorder.isTypeSupported(type)) {
+        console.log('Using MIME type:', type);
+        return type;
+      }
+    }
+    
+    console.warn('No supported MIME type found, using default');
+    return 'audio/webm'; // fallback
+  };
+
+  // Check browser compatibility
+  const checkBrowserCompatibility = () => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
+    if (isIOS && isSafari) {
+      console.warn('🚨 iOS Safari detected - recording may have limitations');
+      return {
+        isCompatible: true,
+        warning: 'For best recording quality on iOS, consider using Chrome or Edge browser.'
+      };
+    }
+    
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      return {
+        isCompatible: false,
+        warning: 'Your browser does not support audio recording. Please use a modern browser like Chrome, Firefox, or Edge.'
+      };
+    }
+    
+    if (!window.MediaRecorder) {
+      return {
+        isCompatible: false,
+        warning: 'MediaRecorder is not supported in your browser. Please update your browser or try a different one.'
+      };
+    }
+    
+    return { isCompatible: true, warning: null };
+  };
+
   // Audio recording functions
   const startRecording = async () => {
     setMicError(null);
+    console.log('🎤 Starting recording process...');
+    
+    // Check browser compatibility first
+    const compatibility = checkBrowserCompatibility();
+    if (!compatibility.isCompatible) {
+      setMicError(compatibility.warning || 'Your browser does not support audio recording.');
+      return;
+    }
+    
+    // Show warning for limited compatibility
+    if (compatibility.warning) {
+      console.warn('🚨', compatibility.warning);
+    }
+    
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+
+      console.log('🎤 Requesting microphone access...');
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
+      
+      console.log('🎤 Microphone access granted');
+      const supportedMimeType = getSupportedMimeType();
+      
+      let mediaRecorder;
+      try {
+        mediaRecorder = new MediaRecorder(stream, { mimeType: supportedMimeType });
+      } catch (e) {
+        console.warn('Failed to create MediaRecorder with MIME type, using default:', e);
+        mediaRecorder = new MediaRecorder(stream);
+      }
+      
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
+        console.log('🎤 Data available, size:', event.data.size);
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data);
         }
       };
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        console.log('🎤 Recording stopped, processing...');
+        console.log('🎤 Audio chunks collected:', audioChunksRef.current.length);
+        
+        if (audioChunksRef.current.length === 0) {
+          console.error('🎤 No audio chunks collected!');
+          setMicError('Recording failed - no audio data captured. Please try again.');
+          return;
+        }
+
+        const totalSize = audioChunksRef.current.reduce((total, chunk) => total + chunk.size, 0);
+        console.log('🎤 Total audio data size:', totalSize, 'bytes');
+
+        const audioBlob = new Blob(audioChunksRef.current, { 
+          type: mediaRecorder.mimeType || supportedMimeType 
+        });
+        
+        console.log('🎤 Created blob, size:', audioBlob.size, 'type:', audioBlob.type);
+        
+        if (audioBlob.size === 0) {
+          console.error('🎤 Empty audio blob created!');
+          setMicError('Recording failed - empty audio file. Please try again.');
+          return;
+        }
+
         const url = URL.createObjectURL(audioBlob);
+        console.log('🎤 Created audio URL:', url);
+        
         setAudioURL(url);
         setFormData(prev => ({ ...prev, audioBlob }));
         stream.getTracks().forEach(track => track.stop());
+        console.log('🎤 Recording process completed successfully');
       };
 
-      mediaRecorder.start();
+      mediaRecorder.onerror = (event) => {
+        console.error('🎤 MediaRecorder error:', event);
+        setMicError('Recording error occurred. Please try again.');
+      };
+
+      console.log('🎤 Starting MediaRecorder...');
+      mediaRecorder.start(1000); // Request data every second
       setIsRecording(true);
       setRecordingTime(0);
       
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => {
           if (prev >= 120) {
+            console.log('🎤 Auto-stopping at 2 minutes');
             stopRecording();
             return 120;
           }
@@ -125,8 +245,12 @@ export const ApplicationForm = () => {
         });
       }, 1000) as unknown as number;
     } catch (error) {
-      console.error('Error accessing microphone:', error);
-      setMicError('Unable to access microphone. Please allow microphone access in your browser settings and try again.');
+      console.error('🎤 Error accessing microphone:', error);
+      if (error instanceof Error) {
+        setMicError(`Unable to access microphone: ${error.message}. Please allow microphone access in your browser settings and try again.`);
+      } else {
+        setMicError('Unable to access microphone. Please allow microphone access in your browser settings and try again.');
+      }
     }
   };
 
@@ -168,20 +292,63 @@ export const ApplicationForm = () => {
     }
   };
 
-  const togglePlayback = () => {
-    if (!audioURL) return;
+  const togglePlayback = async () => {
+    if (!audioURL) {
+      console.error('🔊 No audio URL available');
+      return;
+    }
+    
+    console.log('🔊 Toggling playback, audioURL:', audioURL);
     
     if (!audioRef.current) {
+      console.log('🔊 Creating new Audio object');
       audioRef.current = new Audio(audioURL);
-      audioRef.current.onended = () => setIsPlaying(false);
+      
+      audioRef.current.onended = () => {
+        console.log('🔊 Playback ended');
+        setIsPlaying(false);
+      };
+      
+      audioRef.current.onerror = (e) => {
+        console.error('🔊 Audio playback error:', e);
+        setMicError('Unable to play recording. The audio file may be corrupted.');
+        setIsPlaying(false);
+      };
+      
+      audioRef.current.oncanplaythrough = () => {
+        console.log('🔊 Audio can play through');
+      };
     }
 
-    if (isPlaying) {
-      audioRef.current.pause();
+    try {
+      if (isPlaying) {
+        console.log('🔊 Pausing playback');
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        console.log('🔊 Starting playback');
+        // For mobile browsers, we need to handle the play promise
+        const playPromise = audioRef.current.play();
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log('🔊 Playback started successfully');
+              setIsPlaying(true);
+            })
+            .catch((error) => {
+              console.error('🔊 Playback failed:', error);
+              setMicError('Unable to play recording. Please try again.');
+              setIsPlaying(false);
+            });
+        } else {
+          setIsPlaying(true);
+        }
+      }
+    } catch (error) {
+      console.error('🔊 Error during playback toggle:', error);
+      setMicError('Unable to play recording. Please try again.');
       setIsPlaying(false);
-    } else {
-      audioRef.current.play();
-      setIsPlaying(true);
     }
   };
 
@@ -238,7 +405,6 @@ export const ApplicationForm = () => {
           email: formData.email,
           phone: formData.phone,
           location: formData.location,
-          noticePeriod: formData.noticePeriod,
           experience: formData.experience,
           audioRecording: audioDownloadURL,
           recordingDuration: `${Math.floor(recordingTime / 60)}:${(recordingTime % 60).toString().padStart(2, '0')}`,
@@ -371,14 +537,6 @@ export const ApplicationForm = () => {
               ))}
 
               {[
-                { name: 'noticePeriod', label: "What's your notice period?", options: [
-                  { value: '', label: 'Select notice period' },
-                  { value: 'immediate', label: 'Immediate / 0-15 days' },
-                  { value: '30days', label: '30 days' },
-                  { value: '60days', label: '60 days' },
-                  { value: '90days', label: '90 days' },
-                  { value: 'negotiable', label: 'Negotiable' }
-                ]},
                 { name: 'experience', label: 'How many years of experience do you have?', options: [
                   { value: '', label: 'Select years of experience' },
                   { value: '0-1', label: '0-1 years' },
@@ -418,10 +576,21 @@ export const ApplicationForm = () => {
                 <label className="block text-sm font-bold text-gray-900 mb-2">
                   Voice Introduction (1-2 minutes) <span className="text-[#31a9df]">*</span>
                 </label>
-                <p className="text-xs text-[#9a9a9a] mb-3 flex items-center gap-1">
+                <p className="text-xs text-[#9a9a9a] mb-2 flex items-center gap-1">
                   <Clock className="w-3 h-3" />
                   Recording will automatically stop at 2 minutes
                 </p>
+                <p className="text-xs text-[#31a9df] mb-3 font-medium">
+                  📢 Please record your introduction in English
+                </p>
+                {browserWarning && (
+                  <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                    <p className="text-amber-700 text-xs font-medium flex items-center gap-2">
+                      <span className="shrink-0 w-4 h-4 bg-amber-500 text-white rounded-full flex items-center justify-center text-xs font-bold">!</span>
+                      {browserWarning}
+                    </p>
+                  </div>
+                )}
                 <div className="border-2 border-gray-200 rounded-2xl p-6 bg-gray-50">
                   {!audioURL ? (
                     <div className="text-center">
@@ -557,7 +726,7 @@ export const ApplicationForm = () => {
             </div>
 
             {/* Company Stats */}
-            <div className="bg-linear-to-br from-[#31a9df] to-[#29aae0] rounded-3xl p-8 text-white shadow-lg">
+            {/* <div className="bg-linear-to-br from-[#31a9df] to-[#29aae0] rounded-3xl p-8 text-white shadow-lg">
               <h3 className="text-2xl font-bold mb-6">Join Our Growing Team</h3>
               <div className="space-y-4">
                 {[
@@ -577,7 +746,7 @@ export const ApplicationForm = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
 
             {/* Trust Badges */}
             <div className="bg-white rounded-3xl shadow-lg p-8 border border-gray-100">
@@ -586,7 +755,7 @@ export const ApplicationForm = () => {
                 {[
                   { label: 'Fast Response', desc: '24-48 hours' },
                   { label: 'Secure Process', desc: 'Data Protected' },
-                  { label: 'Global Opportunities', desc: '50+ Countries' },
+                  { label: 'Global Opportunities', desc: '10+ Countries' },
                   { label: 'Career Support', desc: 'Mentorship' }
                 ].map((badge, i) => (
                   <div key={i} className="text-center p-4 bg-gray-50 rounded-xl hover:bg-[#31a9df]/5 transition-all">
