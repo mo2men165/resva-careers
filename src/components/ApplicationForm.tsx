@@ -522,7 +522,7 @@ export const ApplicationForm = () => {
                     name={field.name}
                     value={formData[field.name as keyof Omit<FormData, 'audioBlob'>]}
                     onChange={handleChange}
-                    className={`w-full px-5 py-4 border-2 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#31a9df]/20 transition-all text-gray-900 font-medium ${
+                    className={`w-full px-5 py-4 border-2 focus:outline-none focus:ring-4 focus:ring-[#31a9df]/20 transition-all text-gray-900 font-medium ${
                       errors[field.name as keyof FormErrors] ? 'border-red-500' : 'border-gray-200 focus:border-[#31a9df]'
                     }`}
                     placeholder={field.placeholder}
@@ -554,7 +554,7 @@ export const ApplicationForm = () => {
                     name={field.name}
                     value={formData[field.name as keyof Omit<FormData, 'audioBlob'>]}
                     onChange={handleChange}
-                    className={`w-full px-5 py-4 border-2 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#31a9df]/20 transition-all appearance-none bg-white font-medium ${
+                    className={`w-full px-5 py-4 border-2 focus:outline-none focus:ring-4 focus:ring-[#31a9df]/20 transition-all appearance-none bg-white font-medium ${
                       errors[field.name as keyof FormErrors] ? 'border-red-500' : 'border-gray-200 focus:border-[#31a9df]'
                     } ${formData[field.name as keyof Omit<FormData, 'audioBlob'>] ? 'text-gray-900' : 'text-gray-300'}`}
                   >
@@ -584,14 +584,14 @@ export const ApplicationForm = () => {
                   📢 Please record your introduction in English
                 </p>
                 {browserWarning && (
-                  <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                  <div className="mb-3 p-3 bg-amber-50 border border-amber-200">
                     <p className="text-amber-700 text-xs font-medium flex items-center gap-2">
                       <span className="shrink-0 w-4 h-4 bg-amber-500 text-white rounded-full flex items-center justify-center text-xs font-bold">!</span>
                       {browserWarning}
                     </p>
                   </div>
                 )}
-                <div className="border-2 border-gray-200 rounded-2xl p-6 bg-gray-50">
+                <div className="border-2 border-gray-200 p-6 bg-gray-50">
                   {!audioURL ? (
                     <div className="text-center">
                       <div className="w-20 h-20 bg-linear-to-br from-[#31a9df] to-[#29aae0] rounded-full flex items-center justify-center mx-auto mb-4">
@@ -607,7 +607,7 @@ export const ApplicationForm = () => {
                         <button
                           type="button"
                           onClick={startRecording}
-                          className="px-6 py-3 bg-linear-to-r from-[#31a9df] to-[#29aae0] text-white rounded-xl font-semibold hover:from-[#29aae0] hover:to-[#31a9df] transition-all flex items-center gap-2 mx-auto"
+                          className="px-6 py-3 cursor-pointer bg-[#31a9df] text-white font-semibold transition-all flex items-center gap-2 mx-auto"
                         >
                           <Mic className="w-5 h-5" />
                           Start Recording
@@ -617,7 +617,7 @@ export const ApplicationForm = () => {
                           <button
                             type="button"
                             onClick={pauseRecording}
-                            className="px-6 py-3 bg-yellow-500 text-white rounded-xl font-semibold hover:bg-yellow-600 transition-all flex items-center gap-2"
+                            className="px-6 py-3 bg-yellow-500 text-white font-semibold transition-all flex items-center gap-2"
                           >
                             {isPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
                             {isPaused ? 'Resume' : 'Pause'}
@@ -625,7 +625,7 @@ export const ApplicationForm = () => {
                           <button
                             type="button"
                             onClick={stopRecording}
-                            className="px-6 py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-all flex items-center gap-2"
+                            className="px-6 py-3 bg-red-500 text-white font-semibold transition-all flex items-center gap-2"
                           >
                             <Square className="w-5 h-5" />
                             Stop
@@ -648,7 +648,7 @@ export const ApplicationForm = () => {
                         <button
                           type="button"
                           onClick={deleteRecording}
-                          className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all"
+                          className="p-2 bg-red-100 text-red-600 transition-all"
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
@@ -656,7 +656,7 @@ export const ApplicationForm = () => {
                       <button
                         type="button"
                         onClick={togglePlayback}
-                        className="w-full px-6 py-3 bg-gray-200 text-gray-900 rounded-xl font-semibold hover:bg-gray-300 transition-all flex items-center justify-center gap-2"
+                        className="w-full px-6 py-3 bg-gray-200 text-gray-900 font-semibold transition-all flex items-center justify-center gap-2"
                       >
                         {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
                         {isPlaying ? 'Pause' : 'Play Recording'}
@@ -671,7 +671,7 @@ export const ApplicationForm = () => {
                   </p>
                 )}
                 {micError && (
-                  <div className="mt-3 p-4 bg-red-50 border border-red-200 rounded-xl">
+                  <div className="mt-3 p-4 bg-red-50 border border-red-200">
                     <p className="text-red-600 text-sm font-medium">{micError}</p>
                   </div>
                 )}
@@ -679,7 +679,7 @@ export const ApplicationForm = () => {
 
               {/* Submit Error Display */}
               {submitError && (
-                <div className="p-4 bg-red-50 border-2 border-red-200 rounded-2xl">
+                <div className="p-4 bg-red-50 border-2 border-red-200">
                   <p className="text-red-600 font-semibold text-sm flex items-center gap-2">
                     <span className="shrink-0 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold">!</span>
                     {submitError}
@@ -690,7 +690,7 @@ export const ApplicationForm = () => {
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="w-full bg-linear-to-r from-[#31a9df] to-[#29aae0] text-white py-5 rounded-2xl font-bold text-lg hover:from-[#29aae0] hover:to-[#31a9df] transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-xl hover:shadow-2xl flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full cursor-pointer bg-[#31a9df] text-white py-5 font-bold text-lg transition-all duration-200 shadow-xl flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <>
@@ -700,7 +700,7 @@ export const ApplicationForm = () => {
                 ) : (
                   <>
                     Submit Application
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="w-5 h-5" />
                   </>
                 )}
               </button>

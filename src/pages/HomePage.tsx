@@ -1,17 +1,34 @@
 import React from 'react';
+import { Header } from '../components/Header';
 import { Hero } from '../components/Hero';
-import { Gallery } from '../components/Gallery';
 import { Benefits } from '../components/Benefits';
+import { CoreValues } from '../components/CoreValues';
+import { TeamGrowth } from '../components/TeamGrowth';
+import { CareerRoadmap } from '../components/CareerRoadmap';
+import { Gallery } from '../components/Gallery';
 
 export const HomePage = () => {
   return (
     <div className="min-h-screen bg-white">
+      <Header />
       <Hero />
+      {/* <Benefits /> */}
+      <CoreValues />
+      <CareerRoadmap />
+      <TeamGrowth />
       <Gallery />
-      <Benefits />
       
-      <footer className="bg-gray-900 text-[#9a9a9a] py-8 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <footer 
+        className="relative py-8 px-6 overflow-hidden"
+        style={{
+          backgroundColor: '#0F2346',
+          backgroundImage: 'url(/Lines-Dark-BG.svg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
           <div className="flex items-center">
             <img 
               src="/Res-Va-Blue-Logo.png" 
@@ -20,7 +37,7 @@ export const HomePage = () => {
             />
           </div>
           <div className="text-center md:text-right">
-            <p>&copy; 2025 RES-VA. All rights reserved.</p>
+            <p className="text-white/70">&copy; 2025 RES-VA. All rights reserved.</p>
           </div>
         </div>
       </footer>
