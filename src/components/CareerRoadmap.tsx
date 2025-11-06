@@ -117,7 +117,7 @@ export const CareerRoadmap = () => {
             {steps.map((step, index) => (
               <div
                 key={index}
-                ref={(el) => (stepRefs.current[index] = el)}
+                ref={(el) => { stepRefs.current[index] = el; }}
                 className={`relative transition-all duration-700 ${
                   visibleSteps.has(index) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                 }`}
