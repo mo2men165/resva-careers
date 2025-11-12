@@ -12,7 +12,7 @@ export const Hero = () => {
   }, []);
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#31a9df] via-[#29aae0] to-[#31a9df]">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-linear-to-br from-[#31a9df] via-[#29aae0] to-[#31a9df]">
       <style>{`
         @keyframes float {
           0%, 100% { transform: translateY(0px); }
@@ -87,7 +87,7 @@ export const Hero = () => {
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight text-white animate-slide-up">
                 Transform Your Career
                 <br />
-                <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-white to-blue-100 bg-clip-text text-transparent">
                   With RES-VA
                 </span>
               </h1>
@@ -101,10 +101,10 @@ export const Hero = () => {
               <div className="flex justify-start animate-slide-up-delay-2 mb-8">
                 <Link 
                   to="/apply" 
-                  className="group relative px-8 py-4 bg-[#31a9df] text-white font-bold text-lg md:text-xl transition-all duration-300 shadow-2xl flex items-center gap-3"
+                  className="group relative px-10 py-5 bg-white text-[#31a9df] font-bold text-xl md:text-2xl transition-all duration-300  shadow-[0_18px_35px_rgba(0,0,0,0.25)] hover:shadow-[0_22px_45px_rgba(0,0,0,0.3)] hover:-translate-y-1 flex items-center gap-4"
                 >
                   <span>Apply Now</span>
-                  <ArrowRight className="w-5 h-5 text-white -rotate-45 group-hover:rotate-0 transition-transform duration-300" />
+                  <ArrowRight className="w-6 h-6 text-[#31a9df] -rotate-45 group-hover:rotate-0 transition-transform duration-300" />
                 </Link>
               </div>
 
@@ -126,7 +126,7 @@ export const Hero = () => {
 
           {/* Right half - CEO Message Video Card */}
           <div className="flex items-center justify-center">
-            <div className="relative animate-fade-in w-full max-w-lg">
+            <div className="relative animate-fade-in w-full max-w-2xl">
               {/* Glowing background */}
               <div className="absolute inset-0 bg-white/10 rounded-3xl blur-2xl"></div>
               
@@ -139,7 +139,7 @@ export const Hero = () => {
                 </div>
                 
                 {/* Video */}
-                <div className="relative aspect-video bg-black rounded-2xl overflow-hidden">
+                <div className="relative aspect-video bg-black rounded-2xl overflow-hidden shadow-xl">
                   <video 
                     className="w-full h-full object-contain"
                     controls

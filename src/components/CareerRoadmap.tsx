@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GraduationCap, Phone, TrendingUp, Rocket, CheckCircle2, Circle, ArrowRight } from 'lucide-react';
+import { GraduationCap, Phone, TrendingUp, Rocket, CheckCircle2, ArrowRight } from 'lucide-react';
 
 export const CareerRoadmap = () => {
   const [activeStep, setActiveStep] = useState<number | null>(null);
@@ -12,7 +12,7 @@ export const CareerRoadmap = () => {
       number: "01",
       title: "Start with Our Dedicated Training Program",
       description: "Begin your journey with RES-VA through our in-depth training program — designed to set you up for real success.",
-      color: "from-blue-500 to-cyan-500",
+      color: "from-[#1f7fb3] via-[#2793c9] to-[#31a9df]",
       highlights: [
         "Learn directly from a company that actively invests and closes 200+ deals a year.",
         "Gain a full understanding of the real estate industry and how every part connects.",
@@ -26,7 +26,7 @@ export const CareerRoadmap = () => {
       number: "02",
       title: "Start Having Meaningful Conversations & Continue Your Growth",
       description: "Now that you've built your foundation, it's time to put your training into action.",
-      color: "from-purple-500 to-pink-500",
+      color: "from-[#2793c9] via-[#31a9df] to-[#48b9e8]",
       highlights: [
         "You'll begin having real conversations with homeowners, applying everything you've learned to create real impact.",
         "Our Coaching Department will work closely with you to help increase your call quality score, enhance your communication skills, and ensure every call delivers value.",
@@ -39,7 +39,7 @@ export const CareerRoadmap = () => {
       number: "03",
       title: "Choose Your Career Growth Roadmap",
       description: "At this stage, you'll decide the direction that best fits your skills and ambitions:",
-      color: "from-orange-500 to-red-500",
+      color: "from-[#258cc0] via-[#31a9df] to-[#5fc5ed]",
       highlights: [
         "Operational Growth: Join our Delegating and Training Program to understand how operations function, manage systems, and support business performance.",
         "Sales Growth: Enroll in our Lead Management Training Program, designed to help you advance your sales skills, master conversions, and take your next step toward leadership."
@@ -51,7 +51,7 @@ export const CareerRoadmap = () => {
       number: "04",
       title: "Grow with RES-VA",
       description: "Your growth doesn't stop when you choose your path — it accelerates.",
-      color: "from-green-500 to-emerald-500",
+      color: "from-[#31a9df] via-[#48b9e8] to-[#73d4f6]",
       highlights: [
         "Receive ongoing mentorship and leadership development focused on scaling your skills and impact.",
         "Access advanced training that prepares you for roles like Team Lead, Department Coach, or Account Manager.",
@@ -88,15 +88,15 @@ export const CareerRoadmap = () => {
   }, []);
 
   return (
-    <div id="roadmap" className="py-24 px-6 bg-linear-to-b from-white via-gray-50 to-white relative overflow-hidden">
+    <div id="roadmap" className="py-24 px-6 bg-gradient-to-b from-white via-[#f3f9fd] to-white relative overflow-hidden">
       {/* Background decorations */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#31a9df]/5 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#31a9df]/12 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#1f7fb3]/12 rounded-full blur-3xl"></div>
       
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
         <div className="text-center mb-20">
-          <div className="inline-block px-4 py-2 bg-linear-to-r from-[#31a9df]/10 to-purple-500/10 rounded-full text-[#31a9df] font-semibold text-sm mb-4">
+          <div className="inline-block px-4 py-2 bg-gradient-to-r from-[#1f7fb3]/12 to-[#31a9df]/12 rounded-full text-[#2793c9] font-semibold text-sm mb-4">
             Your Journey with Us
           </div>
           <h2 className="text-5xl md:text-6xl font-bold mb-6 text-gray-900">
@@ -109,44 +109,58 @@ export const CareerRoadmap = () => {
 
         {/* Timeline */}
         <div className="relative">
-          {/* Vertical line */}
-          <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-1 bg-linear-to-b from-[#31a9df] via-purple-500 to-green-500 opacity-20 transform md:-translate-x-1/2"></div>
+          {/* Guiding lines */}
+          <div className="absolute left-4 top-0 bottom-0 w-1 bg-[#31a9df]/20 md:hidden"></div>
+          <div className="hidden md:block absolute left-0 right-0 top-12 h-1 bg-[#31a9df]/20"></div>
 
           {/* Steps */}
-          <div className="space-y-24">
+          <div className="flex flex-col md:flex-row md:items-stretch gap-16 md:gap-12 overflow-x-auto md:overflow-visible pb-12 md:pb-0 snap-x snap-mandatory md:snap-none">
             {steps.map((step, index) => (
               <div
                 key={index}
                 ref={(el) => { stepRefs.current[index] = el; }}
-                className={`relative transition-all duration-700 ${
+                className={`relative transition-all duration-700 snap-center ${
                   visibleSteps.has(index) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                 }`}
                 style={{ transitionDelay: `${index * 100}ms` }}
               >
-                <div className={`flex flex-col md:flex-row gap-8 items-center ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
+                <div className="flex flex-col md:flex-1 md:max-w-sm xl:max-w-md gap-8 md:gap-10 items-start md:items-center md:text-center">
+                  {/* Icon and connector */}
+                  <div className="relative z-20 flex items-center md:flex-col md:items-center">
+                    <div className={`relative w-16 h-16 md:w-20 md:h-20 bg-linear-to-br ${step.color} rounded-full flex items-center justify-center text-white shadow-2xl transform transition-all duration-500 ${
+                      activeStep === index ? 'scale-110 rotate-6' : 'scale-100'
+                    } ${visibleSteps.has(index) ? 'scale-100' : 'scale-0'}`}>
+                      <div className={`absolute inset-0 bg-linear-to-br ${step.color} rounded-full animate-ping opacity-20`}></div>
+                      <div className="relative z-10">
+                        {step.icon}
+                      </div>
+                    </div>
+                    {index < steps.length - 1 && (
+                      <div className="hidden md:block absolute left-full top-1/2 w-24 h-1 bg-[#31a9df]/20"></div>
+                    )}
+                  </div>
+
                   {/* Content Card */}
-                  <div className={`w-full md:w-[calc(50%-4rem)] ${index % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}>
+                  <div className="w-full">
                     <div
                       onMouseEnter={() => setActiveStep(index)}
                       onMouseLeave={() => setActiveStep(null)}
                       className={`group bg-white p-8 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 relative overflow-hidden cursor-pointer ${
-                        activeStep === index ? 'ring-2 ring-[#31a9df]/50' : ''
+                        activeStep === index ? 'ring-2 ring-[#31a9df]/35' : ''
                       }`}
                     >
                       {/* Gradient overlay */}
                       <div className={`absolute inset-0 bg-linear-to-br ${step.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}></div>
                       
                       {/* Step number badge */}
-                      <div className={`inline-flex items-center justify-center px-4 py-1 rounded-full text-sm font-bold mb-4 ${index % 2 === 0 ? 'md:float-left' : 'md:float-right'}`}>
-                        <span className={`bg-linear-to-r ${step.color} bg-clip-text text-transparent text-2xl`}>
+                      <div className="inline-flex items-center justify-center px-4 py-1 rounded-full text-sm font-bold mb-4">
+                        <span className={`bg-gradient-to-r ${step.color} bg-clip-text text-transparent text-2xl`}>
                           Step {step.number}
                         </span>
                       </div>
 
-                      <div className="clear-both"></div>
-
                       {/* Title */}
-                      <h3 className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 group-hover:bg-linear-to-r group-hover:from-[#31a9df] group-hover:to-purple-600 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-500">
+                      <h3 className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 group-hover:bg-gradient-to-r group-hover:from-[#1f7fb3] group-hover:to-[#31a9df] group-hover:bg-clip-text group-hover:text-transparent transition-all duration-500">
                         {step.title}
                       </h3>
 
@@ -158,8 +172,8 @@ export const CareerRoadmap = () => {
                       {/* Highlights */}
                       <div className="space-y-3 mb-6">
                         {step.highlights.map((highlight, hIndex) => (
-                          <div key={hIndex} className={`flex gap-3 items-start ${index % 2 === 0 ? 'md:flex-row-reverse md:text-right' : ''}`}>
-                            <div className={`shrink-0 mt-1 w-6 h-6 bg-linear-to-br ${step.color} rounded-full flex items-center justify-center transform group-hover:scale-110 transition-transform`}>
+                          <div key={hIndex} className="flex gap-3 items-start">
+                            <div className={`shrink-0 mt-1 w-6 h-6 bg-gradient-to-br ${step.color} rounded-full flex items-center justify-center transform group-hover:scale-110 transition-transform`}>
                               <CheckCircle2 className="w-4 h-4 text-white" />
                             </div>
                             <p className="text-gray-700 leading-relaxed">
@@ -171,7 +185,7 @@ export const CareerRoadmap = () => {
 
                       {/* Footer */}
                       {step.footer && (
-                        <div className={`pt-4 border-t border-gray-200 ${index % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}>
+                        <div className="pt-4 border-t border-gray-200">
                           <p className="text-gray-600 italic">
                             {step.footer}
                           </p>
@@ -179,33 +193,11 @@ export const CareerRoadmap = () => {
                       )}
 
                       {/* Progress bar */}
-                      <div className={`absolute bottom-0 ${index % 2 === 0 ? 'right-0' : 'left-0'} h-1 w-full bg-linear-to-r ${step.color} transform origin-${index % 2 === 0 ? 'right' : 'left'} transition-transform duration-500 ${
+                      <div className={`absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r ${step.color} transform origin-left transition-transform duration-500 ${
                         activeStep === index ? 'scale-x-100' : 'scale-x-0'
                       }`}></div>
                     </div>
                   </div>
-
-                  {/* Center Icon */}
-                  <div className="relative z-20 shrink-0">
-                    <div className={`w-20 h-20 bg-linear-to-br ${step.color} rounded-full flex items-center justify-center text-white shadow-2xl transform transition-all duration-500 ${
-                      activeStep === index ? 'scale-125 rotate-12' : 'scale-100'
-                    } ${visibleSteps.has(index) ? 'scale-100' : 'scale-0'}`}>
-                      <div className={`absolute inset-0 bg-linear-to-br ${step.color} rounded-full animate-ping opacity-20`}></div>
-                      <div className="relative z-10">
-                        {step.icon}
-                      </div>
-                    </div>
-
-                    {/* Connecting dots */}
-                    {index < steps.length - 1 && (
-                      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-4 hidden md:block">
-                        <ArrowRight className="w-6 h-6 text-gray-400 rotate-90" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Empty space for alternating layout */}
-                  <div className="hidden md:block md:w-[calc(50%-4rem)]"></div>
                 </div>
               </div>
             ))}
@@ -214,13 +206,13 @@ export const CareerRoadmap = () => {
 
         {/* Call to action */}
         <div className="mt-24 text-center">
-          <div className="inline-block bg-linear-to-br from-[#31a9df] to-purple-600 rounded-3xl p-12 shadow-2xl transform hover:scale-105 transition-all duration-500 relative overflow-hidden group">
+          <div className="inline-block bg-gradient-to-br from-[#1f7fb3] to-[#31a9df] rounded-3xl p-12 shadow-2xl transform hover:scale-105 transition-all duration-500 relative overflow-hidden group">
             <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500"></div>
             <div className="relative z-10">
               <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
                 Ready to Start Your Journey?
               </h3>
-              <p className="text-blue-100 text-lg mb-6 max-w-2xl mx-auto">
+              <p className="text-[#d8eff9] text-lg mb-6 max-w-2xl mx-auto">
                 Join RES-VA today and begin your path to success. Your career transformation is just one call away.
               </p>
               <div className="flex justify-center gap-4 flex-wrap">

@@ -120,7 +120,7 @@ export const TeamGrowth: React.FC = () => {
         {/* Section Header */}
         <div className="text-center mb-20">
           <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur-md rounded-full text-sm font-medium mb-6 border border-white/20">
-            <TrendingUp className="w-4 h-4 text-[#31a9df]" />
+            {/* <TrendingUp className="w-4 h-4 text-[#31a9df]" /> */}
             <span className="text-white/80">Growth Stories</span>
           </div>
           
@@ -197,8 +197,8 @@ export const TeamGrowth: React.FC = () => {
                   {/* Arrow */}
                   <div className="flex justify-center py-2">
                     <div className="relative">
-                      <div className="h-8 w-0.5 bg-gradient-to-b from-white/30 via-[#31a9df]/50 to-emerald-500/50"></div>
-                      <TrendingUp className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-5 h-5 text-emerald-400 animate-pulse" />
+                      {/* <div className="h-8 w-0.5 bg-gradient-to-b from-white/30 via-[#31a9df]/50 to-emerald-500/50"></div> */}
+                      {/* <TrendingUp className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-5 h-5 text-emerald-400 animate-pulse" /> */}
                     </div>
                   </div>
 
