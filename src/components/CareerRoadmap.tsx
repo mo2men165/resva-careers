@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GraduationCap, Phone, TrendingUp, Rocket, CheckCircle2, ArrowRight } from 'lucide-react';
+import { GraduationCap, Phone, TrendingUp, Rocket, ArrowRight } from 'lucide-react';
 
 export const CareerRoadmap = () => {
   const [activeStep, setActiveStep] = useState<number | null>(null);
@@ -10,54 +10,30 @@ export const CareerRoadmap = () => {
     {
       icon: <GraduationCap className="w-8 h-8" />,
       number: "01",
-      title: "Start with Our Dedicated Training Program",
-      description: "Begin your journey with RES-VA through our in-depth training program — designed to set you up for real success.",
-      color: "from-[#1f7fb3] via-[#2793c9] to-[#31a9df]",
-      highlights: [
-        "Learn directly from a company that actively invests and closes 200+ deals a year.",
-        "Gain a full understanding of the real estate industry and how every part connects.",
-        "Master objection handling and sales skills that turn conversations into opportunities.",
-        "Learn how to qualify leads effectively so you can focus on what really drives results."
-      ],
-      footer: "This step builds the foundation for your career growth and prepares you for the next phase at RES-VA."
+      title: "Begin with Training",
+      description: "Start with our dedicated training program built for real success. You'll learn from a company that closes 200+ deals a year, master sales and objection-handling skills, and understand how the real estate industry connects from end to end. This foundation prepares you for the next stage in your career.",
+      color: "from-[#1f7fb3] via-[#2793c9] to-[#31a9df]"
     },
     {
       icon: <Phone className="w-8 h-8" />,
       number: "02",
-      title: "Start Having Meaningful Conversations & Continue Your Growth",
-      description: "Now that you've built your foundation, it's time to put your training into action.",
-      color: "from-[#2793c9] via-[#31a9df] to-[#48b9e8]",
-      highlights: [
-        "You'll begin having real conversations with homeowners, applying everything you've learned to create real impact.",
-        "Our Coaching Department will work closely with you to help increase your call quality score, enhance your communication skills, and ensure every call delivers value.",
-        "Through continuous coaching and performance training, you'll see measurable progress in both your confidence and results."
-      ],
-      footer: null
+      title: "Put Training into Action",
+      description: "Next, you'll begin having real conversations with homeowners. Our Coaching Department will help you sharpen communication, raise your call quality, and grow your confidence through continuous feedback and performance training.",
+      color: "from-[#2793c9] via-[#31a9df] to-[#48b9e8]"
     },
     {
       icon: <TrendingUp className="w-8 h-8" />,
       number: "03",
-      title: "Choose Your Career Growth Roadmap",
-      description: "At this stage, you'll decide the direction that best fits your skills and ambitions:",
-      color: "from-[#258cc0] via-[#31a9df] to-[#5fc5ed]",
-      highlights: [
-        "Operational Growth: Join our Delegating and Training Program to understand how operations function, manage systems, and support business performance.",
-        "Sales Growth: Enroll in our Lead Management Training Program, designed to help you advance your sales skills, master conversions, and take your next step toward leadership."
-      ],
-      footer: "Whichever path you choose, RES-VA will guide you toward your next level of success."
+      title: "Choose Your Growth Path",
+      description: "Once your foundation is set, choose the direction that fits your goals:\n\nOperations: Learn how to manage systems, delegate tasks, and support business performance.\n\nSales: Advance your lead management and conversion skills, preparing for leadership opportunities.",
+      color: "from-[#258cc0] via-[#31a9df] to-[#5fc5ed]"
     },
     {
       icon: <Rocket className="w-8 h-8" />,
       number: "04",
       title: "Grow with RES-VA",
-      description: "Your growth doesn't stop when you choose your path — it accelerates.",
-      color: "from-[#31a9df] via-[#48b9e8] to-[#73d4f6]",
-      highlights: [
-        "Receive ongoing mentorship and leadership development focused on scaling your skills and impact.",
-        "Access advanced training that prepares you for roles like Team Lead, Department Coach, or Account Manager.",
-        "Learn how to analyze performance metrics, lead by example, and mentor the next generation of RES-VA talent."
-      ],
-      footer: "At this stage, you're not just working for RES-VA; you're growing with RES-VA."
+      description: "Your growth accelerates here. Through ongoing mentorship and advanced leadership training, you'll develop skills for roles like Team Lead, Department Coach, or Account Manager—learning to lead by example and guide the next generation of RES-VA talent.",
+      color: "from-[#31a9df] via-[#48b9e8] to-[#73d4f6]"
     }
   ];
 
@@ -103,7 +79,7 @@ export const CareerRoadmap = () => {
             Career Road Map
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Every successful career starts with one call, and at RES-VA, that call leads to a clear path for growth.
+            Every successful career starts with one call. At RES-VA, that call sets you on a clear path for growth.
           </p>
         </div>
 
@@ -119,12 +95,12 @@ export const CareerRoadmap = () => {
               <div
                 key={index}
                 ref={(el) => { stepRefs.current[index] = el; }}
-                className={`relative transition-all duration-700 snap-center ${
+                className={`relative transition-all duration-700 snap-center flex md:flex-1 ${
                   visibleSteps.has(index) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                 }`}
                 style={{ transitionDelay: `${index * 100}ms` }}
               >
-                <div className="flex flex-col md:flex-1 md:max-w-sm xl:max-w-md gap-8 md:gap-10 items-start md:items-center md:text-center">
+                <div className="flex flex-col md:flex-1 md:max-w-sm xl:max-w-md gap-8 md:gap-10 items-start md:items-center md:text-center h-full">
                   {/* Icon and connector */}
                   <div className="relative z-20 flex items-center md:flex-col md:items-center">
                     <div className={`relative w-16 h-16 md:w-20 md:h-20 bg-linear-to-br ${step.color} rounded-full flex items-center justify-center text-white shadow-2xl transform transition-all duration-500 ${
@@ -141,11 +117,11 @@ export const CareerRoadmap = () => {
                   </div>
 
                   {/* Content Card */}
-                  <div className="w-full">
+                  <div className="w-full h-full">
                     <div
                       onMouseEnter={() => setActiveStep(index)}
                       onMouseLeave={() => setActiveStep(null)}
-                      className={`group bg-white p-8 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 relative overflow-hidden cursor-pointer ${
+                      className={`group bg-white p-8 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 relative overflow-hidden cursor-pointer h-full ${
                         activeStep === index ? 'ring-2 ring-[#31a9df]/35' : ''
                       }`}
                     >
@@ -160,37 +136,14 @@ export const CareerRoadmap = () => {
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 group-hover:bg-gradient-to-r group-hover:from-[#1f7fb3] group-hover:to-[#31a9df] group-hover:bg-clip-text group-hover:text-transparent transition-all duration-500">
+                      <h3 className="text-2xl md:text-3xl font-bold mb-6 text-gray-900 group-hover:bg-gradient-to-r group-hover:from-[#1f7fb3] group-hover:to-[#31a9df] group-hover:bg-clip-text group-hover:text-transparent transition-all duration-500">
                         {step.title}
                       </h3>
 
                       {/* Description */}
-                      <p className="text-gray-600 mb-6 text-lg leading-relaxed">
+                      <p className="text-gray-600 text-lg leading-[1.8] whitespace-pre-line">
                         {step.description}
                       </p>
-
-                      {/* Highlights */}
-                      <div className="space-y-3 mb-6">
-                        {step.highlights.map((highlight, hIndex) => (
-                          <div key={hIndex} className="flex gap-3 items-start">
-                            <div className={`shrink-0 mt-1 w-6 h-6 bg-gradient-to-br ${step.color} rounded-full flex items-center justify-center transform group-hover:scale-110 transition-transform`}>
-                              <CheckCircle2 className="w-4 h-4 text-white" />
-                            </div>
-                            <p className="text-gray-700 leading-relaxed">
-                              {highlight}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Footer */}
-                      {step.footer && (
-                        <div className="pt-4 border-t border-gray-200">
-                          <p className="text-gray-600 italic">
-                            {step.footer}
-                          </p>
-                        </div>
-                      )}
 
                       {/* Progress bar */}
                       <div className={`absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r ${step.color} transform origin-left transition-transform duration-500 ${
@@ -258,4 +211,3 @@ export const CareerRoadmap = () => {
 };
 
 export default CareerRoadmap;
-

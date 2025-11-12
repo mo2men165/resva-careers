@@ -23,9 +23,10 @@ export const Header = () => {
 
   const navLinks = [
     { name: 'Home', path: '/' },
-    { name: 'Our Values', path: '#values' },
+    { name: 'Our Core Values', path: '#values' },
     { name: 'Career Roadmap', path: '#roadmap' },
-    { name: 'Team Growth', path: '#team' },
+    { name: 'Growth Stories', path: '#team' },
+    { name: 'Our Gallery', path: '#gallery' },
   ];
 
   return (
@@ -35,10 +36,9 @@ export const Header = () => {
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 py-4">
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-8">
-          
+        <div className="flex items-center gap-6">
           {/* Logo */}
-          <Link to="/" className="flex items-center justify-start">
+          <Link to="/" className="flex items-center justify-start shrink-0">
             <img 
               src="/Res-Va-Blue-Logo.png" 
               alt="RES-VA Logo" 
@@ -47,7 +47,7 @@ export const Header = () => {
           </Link>
 
           {/* Desktop Navigation Links - Centered */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex flex-1 items-center justify-center gap-8">
             {navLinks.map((link) => (
               <a
                 key={link.name}
@@ -60,27 +60,29 @@ export const Header = () => {
             ))}
           </nav>
 
-          {/* Desktop CTA Button */}
-          <Link
-            to="/apply"
-            className="hidden md:inline-flex items-center gap-3 px-6 py-3 bg-[#31a9df] text-white font-semibold transition-all duration-300 shadow-lg group justify-self-end"
-          >
-            <span>Grow Your Career With RES-VA</span>
-            <ArrowRight className="w-5 h-5 text-white -rotate-45 group-hover:rotate-0 transition-transform duration-300" />
-          </Link>
+          <div className="flex items-center gap-4 ml-auto">
+            {/* Desktop CTA Button */}
+            <Link
+              to="/apply"
+              className="hidden md:inline-flex items-center gap-3 px-6 py-3 bg-[#31a9df] text-white font-semibold transition-all duration-300 shadow-lg group"
+            >
+              <span>Grow Your Career With RES-VA</span>
+              <ArrowRight className="w-5 h-5 text-white -rotate-45 group-hover:rotate-0 transition-transform duration-300" />
+            </Link>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 text-gray-700 hover:text-[#31a9df] transition-colors col-start-3 justify-self-end"
-            aria-label="Toggle menu"
-          >
-            {isOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
-          </button>
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="md:hidden p-2 text-gray-700 hover:text-[#31a9df] transition-colors"
+              aria-label="Toggle menu"
+            >
+              {isOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}

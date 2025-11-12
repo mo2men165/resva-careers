@@ -18,7 +18,7 @@ export const Gallery = () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Our <span className="text-[#31a9df]">Gallery</span>
+            Gallery
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Explore our world through these captivating moments and discover the experiences that define our journey.
