@@ -56,6 +56,30 @@ export const ApplicationForm = () => {
     if (compatibility.warning) {
       setBrowserWarning(compatibility.warning);
     }
+    
+    // Check microphone permission state if available
+    if (navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'microphone' as PermissionName })
+        .then((result) => {
+          console.log('🎤 Microphone permission state:', result.state);
+          if (result.state === 'denied') {
+            setMicError('Microphone access is blocked. Please enable it in your browser settings and refresh the page.');
+          }
+          // Listen for permission changes
+          result.onchange = () => {
+            console.log('🎤 Microphone permission changed to:', result.state);
+            if (result.state === 'granted') {
+              setMicError(null);
+            } else if (result.state === 'denied') {
+              setMicError('Microphone access is blocked. Please enable it in your browser settings and refresh the page.');
+            }
+          };
+        })
+        .catch((err) => {
+          console.warn('🎤 Could not check microphone permission state:', err);
+          // Permission API not supported or failed, continue anyway
+        });
+    }
   }, []);
 
   const validate = () => {
@@ -115,12 +139,30 @@ export const ApplicationForm = () => {
   const checkBrowserCompatibility = () => {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    const isMacSafari = /Macintosh.*Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+    const isHTTPS = window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    // Check HTTPS requirement
+    if (!isHTTPS) {
+      return {
+        isCompatible: false,
+        warning: 'Microphone access requires a secure connection (HTTPS). Please access this site via HTTPS.'
+      };
+    }
     
     if (isIOS && isSafari) {
       console.warn('🚨 iOS Safari detected - recording may have limitations');
       return {
         isCompatible: true,
         warning: 'For best recording quality on iOS, consider using Chrome or Edge browser.'
+      };
+    }
+    
+    if (isMacSafari) {
+      console.warn('🚨 macOS Safari detected - using simplified audio constraints');
+      return {
+        isCompatible: true,
+        warning: null
       };
     }
     
@@ -158,18 +200,88 @@ export const ApplicationForm = () => {
       console.warn('🚨', compatibility.warning);
     }
     
+    // Detect browser type for constraint handling
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    const isMacSafari = /Macintosh.*Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+    
     try {
-
       console.log('🎤 Requesting microphone access...');
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        }
+      console.log('🎤 Browser info:', {
+        userAgent: navigator.userAgent,
+        isIOS,
+        isSafari,
+        isMacSafari,
+        protocol: window.location.protocol,
+        hostname: window.location.hostname
       });
       
-      console.log('🎤 Microphone access granted');
+      // Try with full constraints first, then fallback to simpler constraints for Safari
+      let stream: MediaStream | null = null;
+      let audioConstraints: MediaTrackConstraints = {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      };
+      
+      try {
+        // First attempt with full constraints
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: audioConstraints
+        });
+        console.log('🎤 Microphone access granted with full constraints');
+      } catch (firstError: any) {
+        console.warn('🎤 First attempt failed, trying with simplified constraints:', firstError);
+        
+        // For Safari, try with minimal constraints
+        if (isSafari || isMacSafari) {
+          try {
+            audioConstraints = {}; // Minimal constraints for Safari
+            stream = await navigator.mediaDevices.getUserMedia({ 
+              audio: audioConstraints
+            });
+            console.log('🎤 Microphone access granted with simplified constraints (Safari)');
+          } catch (secondError: any) {
+            console.error('🎤 Second attempt also failed:', secondError);
+            throw secondError; // Re-throw to be caught by outer catch
+          }
+        } else {
+          // For other browsers, try with just echoCancellation
+          try {
+            audioConstraints = { echoCancellation: true };
+            stream = await navigator.mediaDevices.getUserMedia({ 
+              audio: audioConstraints
+            });
+            console.log('🎤 Microphone access granted with echoCancellation only');
+          } catch (secondError: any) {
+            console.error('🎤 Second attempt also failed:', secondError);
+            throw secondError; // Re-throw to be caught by outer catch
+          }
+        }
+      }
+      
+      if (!stream) {
+        throw new Error('Failed to obtain media stream');
+      }
+      
+      // Verify stream has audio tracks
+      const audioTracks = stream.getAudioTracks();
+      if (audioTracks.length === 0) {
+        stream.getTracks().forEach(track => track.stop());
+        throw new Error('No audio tracks available in the stream');
+      }
+      
+      console.log('🎤 Audio tracks obtained:', audioTracks.length);
+      audioTracks.forEach((track, index) => {
+        console.log(`🎤 Track ${index}:`, {
+          label: track.label,
+          enabled: track.enabled,
+          muted: track.muted,
+          readyState: track.readyState,
+          settings: track.getSettings()
+        });
+      });
+      
       const supportedMimeType = getSupportedMimeType();
       
       let mediaRecorder;
@@ -244,13 +356,33 @@ export const ApplicationForm = () => {
           return prev + 1;
         });
       }, 1000) as unknown as number;
-    } catch (error) {
+    } catch (error: any) {
       console.error('🎤 Error accessing microphone:', error);
-      if (error instanceof Error) {
-        setMicError(`Unable to access microphone: ${error.message}. Please allow microphone access in your browser settings and try again.`);
+      
+      // Provide specific error messages based on error type
+      let errorMessage = 'Unable to access microphone. ';
+      
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        errorMessage += 'Microphone permission was denied. Please allow microphone access in your browser settings and refresh the page.';
+      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+        errorMessage += 'No microphone found. Please connect a microphone and try again.';
+      } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+        errorMessage += 'Microphone is already in use by another application. Please close other applications using the microphone and try again.';
+      } else if (error.name === 'OverconstrainedError' || error.name === 'ConstraintNotSatisfiedError') {
+        errorMessage += 'Microphone does not support the required settings. Please try a different microphone or browser.';
+      } else if (error.name === 'SecurityError' || error.name === 'TypeError') {
+        if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+          errorMessage += 'Microphone access requires a secure connection (HTTPS). Please access this site via HTTPS.';
+        } else {
+          errorMessage += 'Security error accessing microphone. Please check your browser settings and ensure the site has permission to access your microphone.';
+        }
+      } else if (error.message) {
+        errorMessage += error.message + '. Please check your browser settings and try again.';
       } else {
-        setMicError('Unable to access microphone. Please allow microphone access in your browser settings and try again.');
+        errorMessage += 'Please allow microphone access in your browser settings and try again.';
       }
+      
+      setMicError(errorMessage);
     }
   };
 
