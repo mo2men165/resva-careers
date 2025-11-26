@@ -56,6 +56,8 @@ export const ApplicationForm = () => {
     if (compatibility.warning) {
       setBrowserWarning(compatibility.warning);
     }
+    // Clear any stale mic errors on mount (Safari can have stale permission states)
+    setMicError(null);
   }, []);
 
   const validate = () => {
@@ -159,6 +161,27 @@ export const ApplicationForm = () => {
     return { isCompatible: true, warning: null };
   };
 
+  // Check microphone permission status (Safari-friendly)
+  const checkMicrophonePermission = async (): Promise<'granted' | 'denied' | 'prompt' | 'unknown'> => {
+    try {
+      // Check if permissions API is available (not available in all browsers)
+      if (navigator.permissions && navigator.permissions.query) {
+        try {
+          const result = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+          return result.state as 'granted' | 'denied' | 'prompt';
+        } catch (permError) {
+          // Permissions API might not support 'microphone' in some browsers
+          console.log('🎤 Permissions API not available or unsupported:', permError);
+          return 'unknown';
+        }
+      }
+      return 'unknown';
+    } catch (error) {
+      console.log('🎤 Error checking permission:', error);
+      return 'unknown';
+    }
+  };
+
   // Audio recording functions
   const startRecording = async () => {
     setMicError(null);
@@ -181,6 +204,22 @@ export const ApplicationForm = () => {
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
     const isMacSafari = /Macintosh.*Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
     
+    // For Safari, check permission status first (but don't block if unknown)
+    if (isSafari || isMacSafari) {
+      const permissionStatus = await checkMicrophonePermission();
+      console.log('🎤 Microphone permission status:', permissionStatus);
+      
+      // If explicitly denied, show error early
+      if (permissionStatus === 'denied') {
+        setMicError('Microphone permission was denied. Please allow microphone access in your browser settings and refresh the page.');
+        return;
+      }
+      // If granted or prompt, proceed (Safari might still throw errors even if granted, so we'll handle it)
+    }
+    
+    // Declare stream outside try block so it's accessible in catch block
+    let stream: MediaStream | null = null;
+    
     try {
       console.log('🎤 Requesting microphone access...');
       console.log('🎤 Browser info:', {
@@ -193,7 +232,6 @@ export const ApplicationForm = () => {
       });
       
       // Try with full constraints first, then fallback to simpler constraints for Safari
-      let stream: MediaStream | null = null;
       let audioConstraints: MediaTrackConstraints = {
         echoCancellation: true,
         noiseSuppression: true,
@@ -335,30 +373,162 @@ export const ApplicationForm = () => {
     } catch (error: any) {
       console.error('🎤 Error accessing microphone:', error);
       
-      // Provide specific error messages based on error type
-      let errorMessage = 'Unable to access microphone. ';
-      
-      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-        errorMessage += 'Microphone permission was denied. Please allow microphone access in your browser settings and refresh the page.';
-      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-        errorMessage += 'No microphone found. Please connect a microphone and try again.';
-      } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-        errorMessage += 'Microphone is already in use by another application. Please close other applications using the microphone and try again.';
-      } else if (error.name === 'OverconstrainedError' || error.name === 'ConstraintNotSatisfiedError') {
-        errorMessage += 'Microphone does not support the required settings. Please try a different microphone or browser.';
-      } else if (error.name === 'SecurityError' || error.name === 'TypeError') {
-        if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-          errorMessage += 'Microphone access requires a secure connection (HTTPS). Please access this site via HTTPS.';
-        } else {
-          errorMessage += 'Security error accessing microphone. Please check your browser settings and ensure the site has permission to access your microphone.';
+      // For Safari, double-check permission status before showing error
+      // Safari can throw NotAllowedError even when permission is granted in some edge cases
+      let retrySucceeded = false;
+      if (isSafari || isMacSafari) {
+        const permissionStatus = await checkMicrophonePermission();
+        console.log('🎤 Permission status after error:', permissionStatus);
+        
+        // If permission is actually granted, this might be a Safari quirk
+        // Try one more time with absolute minimal setup
+        if (permissionStatus === 'granted' && (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError')) {
+          console.log('🎤 Permission is granted but got NotAllowedError - Safari quirk detected, retrying...');
+          try {
+            // Wait a tiny bit and retry (Safari sometimes needs a moment)
+            await new Promise(resolve => setTimeout(resolve, 100));
+            const retryStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            console.log('🎤 Retry successful!');
+            // If retry succeeds, continue with the stream
+            stream = retryStream;
+            retrySucceeded = true;
+          } catch (retryError: any) {
+            console.error('🎤 Retry also failed:', retryError);
+            // Fall through to error handling below
+          }
         }
-      } else if (error.message) {
-        errorMessage += error.message + '. Please check your browser settings and try again.';
-      } else {
-        errorMessage += 'Please allow microphone access in your browser settings and try again.';
       }
       
-      setMicError(errorMessage);
+      // If retry succeeded, continue with recording setup
+      if (retrySucceeded && stream) {
+        // Verify stream has audio tracks
+        const audioTracks = stream.getAudioTracks();
+        if (audioTracks.length === 0) {
+          stream.getTracks().forEach(track => track.stop());
+          setMicError('No audio tracks available in the stream. Please try again.');
+          return;
+        }
+        
+        console.log('🎤 Audio tracks obtained:', audioTracks.length);
+        audioTracks.forEach((track, index) => {
+          console.log(`🎤 Track ${index}:`, {
+            label: track.label,
+            enabled: track.enabled,
+            muted: track.muted,
+            readyState: track.readyState,
+            settings: track.getSettings()
+          });
+        });
+        
+        const supportedMimeType = getSupportedMimeType();
+        
+        let mediaRecorder;
+        try {
+          mediaRecorder = new MediaRecorder(stream, { mimeType: supportedMimeType });
+        } catch (e) {
+          console.warn('Failed to create MediaRecorder with MIME type, using default:', e);
+          mediaRecorder = new MediaRecorder(stream);
+        }
+        
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          console.log('🎤 Data available, size:', event.data.size);
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = () => {
+          console.log('🎤 Recording stopped, processing...');
+          console.log('🎤 Audio chunks collected:', audioChunksRef.current.length);
+          
+          if (audioChunksRef.current.length === 0) {
+            console.error('🎤 No audio chunks collected!');
+            setMicError('Recording failed - no audio data captured. Please try again.');
+            return;
+          }
+
+          const totalSize = audioChunksRef.current.reduce((total, chunk) => total + chunk.size, 0);
+          console.log('🎤 Total audio data size:', totalSize, 'bytes');
+
+          const audioBlob = new Blob(audioChunksRef.current, { 
+            type: mediaRecorder.mimeType || supportedMimeType 
+          });
+          
+          console.log('🎤 Created blob, size:', audioBlob.size, 'type:', audioBlob.type);
+          
+          if (audioBlob.size === 0) {
+            console.error('🎤 Empty audio blob created!');
+            setMicError('Recording failed - empty audio file. Please try again.');
+            return;
+          }
+
+          const url = URL.createObjectURL(audioBlob);
+          console.log('🎤 Created audio URL:', url);
+          
+          setAudioURL(url);
+          setFormData(prev => ({ ...prev, audioBlob }));
+          stream.getTracks().forEach(track => track.stop());
+          console.log('🎤 Recording process completed successfully');
+        };
+
+        mediaRecorder.onerror = (event) => {
+          console.error('🎤 MediaRecorder error:', event);
+          setMicError('Recording error occurred. Please try again.');
+        };
+
+        console.log('🎤 Starting MediaRecorder...');
+        mediaRecorder.start(1000); // Request data every second
+        setIsRecording(true);
+        setRecordingTime(0);
+        
+        timerRef.current = setInterval(() => {
+          setRecordingTime(prev => {
+            if (prev >= 120) {
+              console.log('🎤 Auto-stopping at 2 minutes');
+              stopRecording();
+              return 120;
+            }
+            return prev + 1;
+          });
+        }, 1000) as unknown as number;
+        return; // Successfully started recording after retry
+      }
+      
+      // Only show error if we still don't have a stream
+      if (!stream) {
+        // Provide specific error messages based on error type
+        let errorMessage = 'Unable to access microphone. ';
+        
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+          // For Safari, provide more helpful message
+          if (isSafari || isMacSafari) {
+            errorMessage += 'Microphone access was denied. Please click "Allow" when prompted, or check Safari Settings > Websites > Microphone to ensure this site has permission.';
+          } else {
+            errorMessage += 'Microphone permission was denied. Please allow microphone access in your browser settings and refresh the page.';
+          }
+        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+          errorMessage += 'No microphone found. Please connect a microphone and try again.';
+        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+          errorMessage += 'Microphone is already in use by another application. Please close other applications using the microphone and try again.';
+        } else if (error.name === 'OverconstrainedError' || error.name === 'ConstraintNotSatisfiedError') {
+          errorMessage += 'Microphone does not support the required settings. Please try a different microphone or browser.';
+        } else if (error.name === 'SecurityError' || error.name === 'TypeError') {
+          if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            errorMessage += 'Microphone access requires a secure connection (HTTPS). Please access this site via HTTPS.';
+          } else {
+            errorMessage += 'Security error accessing microphone. Please check your browser settings and ensure the site has permission to access your microphone.';
+          }
+        } else if (error.message) {
+          errorMessage += error.message + '. Please check your browser settings and try again.';
+        } else {
+          errorMessage += 'Please allow microphone access in your browser settings and try again.';
+        }
+        
+        setMicError(errorMessage);
+      }
     }
   };
 
