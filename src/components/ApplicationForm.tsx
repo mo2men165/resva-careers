@@ -523,7 +523,57 @@ export const ApplicationForm = () => {
           }
         }
         
-        // 2. Send to Formspree
+        // 2. Prepare submission data
+        const submissionData = {
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          location: formData.location,
+          experience: formData.experience,
+          audioRecording: audioDownloadURL,
+          recordingDuration: `${Math.floor(recordingTime / 60)}:${(recordingTime % 60).toString().padStart(2, '0')}`,
+          submittedAt: new Date().toISOString()
+        };
+
+        // 3. Send to Google Sheets (optional - won't fail if not configured)
+        const googleSheetsUrl = import.meta.env.VITE_GOOGLE_SHEETS_WEB_APP_URL;
+        if (googleSheetsUrl) {
+          // Try POST with form data first, then fallback to GET if needed
+          const formData = new URLSearchParams();
+          // Send individual fields as form parameters (more reliable than nested JSON)
+          formData.append('fullName', submissionData.fullName);
+          formData.append('email', submissionData.email);
+          formData.append('phone', submissionData.phone);
+          formData.append('location', submissionData.location);
+          formData.append('experience', submissionData.experience);
+          formData.append('audioRecording', submissionData.audioRecording);
+          formData.append('recordingDuration', submissionData.recordingDuration);
+          
+          // Use no-cors mode - this sends the data but we can't read the response
+          fetch(googleSheetsUrl, {
+            method: 'POST',
+            mode: 'no-cors', // Bypasses CORS but we can't read response
+            body: formData
+          }).then(() => {
+            console.log('Application data sent to Google Sheets (fire-and-forget)');
+          }).catch((sheetsError) => {
+            console.warn('Error sending to Google Sheets:', sheetsError);
+            // Try GET method as fallback (for very long URLs, this might fail due to length limits)
+            const getUrl = new URL(googleSheetsUrl);
+            Object.keys(submissionData).forEach(key => {
+              getUrl.searchParams.append(key, submissionData[key] || '');
+            });
+            
+            fetch(getUrl.toString(), {
+              method: 'GET',
+              mode: 'no-cors'
+            }).catch(() => {
+              console.warn('Both POST and GET methods failed for Google Sheets');
+            });
+          });
+        }
+        
+        // 4. Send to Formspree (email notification)
         const formspreeEndpoint = import.meta.env.VITE_FORMSPREE_ENDPOINT;
         
         if (!formspreeEndpoint) {
@@ -533,14 +583,7 @@ export const ApplicationForm = () => {
         }
         
         const formspreeData = {
-          fullName: formData.fullName,
-          email: formData.email,
-          phone: formData.phone,
-          location: formData.location,
-          experience: formData.experience,
-          audioRecording: audioDownloadURL,
-          recordingDuration: `${Math.floor(recordingTime / 60)}:${(recordingTime % 60).toString().padStart(2, '0')}`,
-          submittedAt: new Date().toISOString(),
+          ...submissionData,
           message: `New application from ${formData.fullName}. Please listen to their voice introduction: ${audioDownloadURL}`
         };
         
