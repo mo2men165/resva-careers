@@ -561,7 +561,8 @@ export const ApplicationForm = () => {
             // Try GET method as fallback (for very long URLs, this might fail due to length limits)
             const getUrl = new URL(googleSheetsUrl);
             Object.keys(submissionData).forEach(key => {
-              getUrl.searchParams.append(key, submissionData[key] || '');
+              const value = submissionData[key as keyof typeof submissionData];
+              getUrl.searchParams.append(key, value || '');
             });
             
             fetch(getUrl.toString(), {
