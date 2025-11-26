@@ -56,30 +56,6 @@ export const ApplicationForm = () => {
     if (compatibility.warning) {
       setBrowserWarning(compatibility.warning);
     }
-    
-    // Check microphone permission state if available
-    if (navigator.permissions && navigator.permissions.query) {
-      navigator.permissions.query({ name: 'microphone' as PermissionName })
-        .then((result) => {
-          console.log('🎤 Microphone permission state:', result.state);
-          if (result.state === 'denied') {
-            setMicError('Microphone access is blocked. Please enable it in your browser settings and refresh the page.');
-          }
-          // Listen for permission changes
-          result.onchange = () => {
-            console.log('🎤 Microphone permission changed to:', result.state);
-            if (result.state === 'granted') {
-              setMicError(null);
-            } else if (result.state === 'denied') {
-              setMicError('Microphone access is blocked. Please enable it in your browser settings and refresh the page.');
-            }
-          };
-        })
-        .catch((err) => {
-          console.warn('🎤 Could not check microphone permission state:', err);
-          // Permission API not supported or failed, continue anyway
-        });
-    }
   }, []);
 
   const validate = () => {
